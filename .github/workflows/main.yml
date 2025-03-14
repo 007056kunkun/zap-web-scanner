@@ -30,9 +30,8 @@ jobs:
 
       - name: Run OWASP ZAP Scan
         run: |
-          docker pull owasp/zap2docker-stable
-          docker run -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:5000 -r zap_report.html
-
+          docker pull ghcr.io/zaproxy/zaproxy:stable
+          docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://localhost:5000 -r zap_report.html
       - name: Upload ZAP Scan Report
         uses: actions/upload-artifact@v4.6.1
         with:
