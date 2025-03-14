@@ -1,19 +1,40 @@
-name: Deploy Web App
+name: OWASP ZAP Security Scan
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  deploy:
+  zap_scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: pip3 install flask
+      - name: Set up Python Environment
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
 
-      - name: Run Web App
-        run: python3 app.py &
+      - name: Install Dependencies and Start Flask App
+        run: |
+          pip install flask
+          nohup python app.py &  # Start Flask in the background
+        env:
+          FLASK_APP: app.py
 
+      - name: Wait for Flask App to Start
+        run: sleep 10  # Wait for the app to initialize
+
+      - name: Run OWASP ZAP Scan
+        run: |
+          docker pull owasp/zap2docker-stable
+          docker run -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:5000 -r zap_report.html
+
+      - name: Upload ZAP Scan Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-security-report
+          path: zap_report.html
