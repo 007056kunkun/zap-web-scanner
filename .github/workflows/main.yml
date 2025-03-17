@@ -40,7 +40,7 @@ jobs:
       - name: Run OWASP ZAP Scan
         run: |
           docker pull ghcr.io/zaproxy/zaproxy:stable
-          docker run --rm \
+          sudo docker run --rm \
             -v $(pwd)/zap_wrk:/zap/wrk:rw \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
