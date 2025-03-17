@@ -41,8 +41,7 @@ jobs:
             -c /zap/wrk/custom_config.conf \
             -l WARN \
             -r /zap/wrk/zap_report.html \
-            > /zap/wrk/zap.log 2>&1 || true
-
+            2>&1 | tee /zap/wrk/zap.log || true
       - name: Save ZAP logs
         if: always()
         run: cat /zap/wrk/zap.log
