@@ -33,18 +33,23 @@ jobs:
           ls -l $(pwd)/custom_config.conf
 
       - name: Ensure ZAP working directory exists
-        run: mkdir -p $(pwd)/zap_wrk
+        run: |
+          mkdir -p $(pwd)/zap_wrk
+          sudo chmod -R 777 $(pwd)/zap_wrk  # 确保 Docker 可以写入
 
       - name: Run OWASP ZAP Scan
         run: |
           docker pull ghcr.io/zaproxy/zaproxy:stable
-          docker run -v $(pwd):/zap/wrk:rw -t ghcr.io/zaproxy/zaproxy:stable \
+          docker run --rm \
+            -v $(pwd)/zap_wrk:/zap/wrk:rw \
+            ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://host.docker.internal:5000 \
             -c /zap/wrk/custom_config.conf \
             -l WARN \
             -r /zap/wrk/zap_report.html \
-            2>&1 | tee /zap/wrk/zap.log || true
+            2>&1 | tee $(pwd)/zap_wrk/zap.log || true
+
       - name: Save ZAP logs
         if: always()
         run: cat /zap/wrk/zap.log
@@ -55,6 +60,3 @@ jobs:
           name: zap-security-report
           path: /zap/wrk/zap_report.html
 
-      - name: Fix permissions
-        run: |
-          sudo chmod -R 777 $(pwd)
