@@ -32,6 +32,9 @@ jobs:
         run: |
           ls -l $(pwd)/custom_config.conf
 
+      - name: Ensure ZAP working directory exists
+        run: mkdir -p $(pwd)/zap_wrk
+
       - name: Run OWASP ZAP Scan
         run: |
           docker pull ghcr.io/zaproxy/zaproxy:stable
@@ -51,3 +54,7 @@ jobs:
         with:
           name: zap-security-report
           path: /zap/wrk/zap_report.html
+
+      - name: Fix permissions
+        run: |
+          sudo chmod -R 777 $(pwd)
