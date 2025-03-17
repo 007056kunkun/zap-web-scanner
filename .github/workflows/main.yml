@@ -21,29 +21,34 @@ jobs:
       - name: Install Dependencies and Start Flask App
         run: |
           pip install flask
-          nohup python app.py &  # Start Flask in the background
+          nohup python app.py > flask.log 2>&1 &  # Start Flask in the background
         env:
           FLASK_APP: app.py
 
       - name: Wait for Flask App to Start
         run: sleep 10  # Wait for the app to initialize
 
+      - name: Ensure config file exists
+        run: |
+          ls -l $(pwd)/custom_config.conf
+
       - name: Run OWASP ZAP Scan
         run: |
           docker pull ghcr.io/zaproxy/zaproxy:stable
-          docker run -v /home/terry/zap_web_app/:/zap/wrk:rw -t ghcr.io/zaproxy/zaproxy:stable \
+          docker run -v $(pwd):/zap/wrk:rw -t ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
-            -t http://localhost:5000 \
+            -t http://host.docker.internal:5000 \
             -c /zap/wrk/custom_config.conf \
             -l WARN \
-            -r /zap/wrk/zap_report.html
-
-      - name: Upload ZAP Scan Report
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: zap-security-report
-          path: zap_report.html
+            -r /zap/wrk/zap_report.html \
+            > /zap/wrk/zap.log 2>&1 || true
 
       - name: Save ZAP logs
         if: always()
         run: cat /zap/wrk/zap.log
+
+      - name: Upload ZAP Scan Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-security-report
+          path: /zap/wrk/zap_report.html
