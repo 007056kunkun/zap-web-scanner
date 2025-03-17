@@ -52,11 +52,15 @@ jobs:
 
       - name: Save ZAP logs
         if: always()
-        run: cat /zap/wrk/zap.log
+        run: |
+          if [ -f $(pwd)/zap_wrk/zap.log ]; then
+            cat $(pwd)/zap_wrk/zap.log
+          else
+            echo "⚠️ Warning: ZAP log file not found!"
+          fi
 
       - name: Upload ZAP Scan Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-report
-          path: /zap/wrk/zap_report.html
-
+          path: $(pwd)/zap_wrk/zap_report.html
