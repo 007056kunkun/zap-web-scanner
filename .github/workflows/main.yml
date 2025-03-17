@@ -38,3 +38,7 @@ jobs:
         with:
           name: zap-security-report
           path: zap_report.html
+
+      - name: Save ZAP logs
+        if: failure()
+        run: cat /zap/wrk/zap.log
